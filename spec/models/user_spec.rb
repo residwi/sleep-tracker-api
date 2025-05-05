@@ -13,6 +13,7 @@ RSpec.describe User, type: :model do
 
   describe "associations" do
     it { is_expected.to have_many(:sessions).dependent(:destroy) }
+    it { is_expected.to have_many(:sleep_records) }
   end
 
   describe "name validations" do
