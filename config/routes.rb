@@ -11,4 +11,12 @@ Rails.application.routes.draw do
   root "home#index"
 
   resources :sleep_records
+  resources :users, only: [ :index, :show ] do
+    member do
+      post :follow
+      delete :unfollow
+      get :followers
+      get :following
+    end
+  end
 end
