@@ -6,16 +6,11 @@ class UsersController < ApplicationController
     @users = User.select(:id, :name).order(id: :asc)
     @pagy, @records = pagy_keyset(@users)
 
-    render json: {
-      data: @records,
-      pagination: {
-        next: pagy_keyset_next_url(@pagy, absolute: true)
-      }
-    }
+    json_pagination_response(@records, @pagy)
   end
 
   def show
-    render json: @user, status: :ok
+    json_response(data: @user)
   end
 
   def sleep_records
@@ -25,19 +20,14 @@ class UsersController < ApplicationController
 
     @pagy, @records = pagy_keyset(@sleep_records)
 
-    render json: {
-      data: @records,
-      pagination: {
-        next: pagy_keyset_next_url(@pagy, absolute: true)
-      }
-    }
+    json_pagination_response(@records, @pagy)
   end
 
   def follow
     if Current.user.follow(@user)
-      render json: { message: "Successfully followed user" }, status: :created
+      json_response(message: "Successfully followed user", status: :created)
     else
-      render json: { error: "Unable to follow user" }, status: :unprocessable_entity
+      json_response(message: "Unable to follow user", status: :unprocessable_entity)
     end
   end
 
@@ -49,23 +39,13 @@ class UsersController < ApplicationController
   def followers
     @pagy, @records = pagy_keyset(@user.followers.order(created_at: :desc))
 
-    render json: {
-      data: @records,
-      pagination: {
-        next: pagy_keyset_next_url(@pagy, absolute: true)
-      }
-    }
+    json_pagination_response(@records, @pagy)
   end
 
   def following
     @pagy, @records = pagy_keyset(@user.following.order(created_at: :desc))
 
-    render json: {
-      data: @records,
-      pagination: {
-        next: pagy_keyset_next_url(@pagy, absolute: true)
-      }
-    }
+    json_pagination_response(@records, @pagy)
   end
 
   private

@@ -6,33 +6,28 @@ class SleepRecordsController < ApplicationController
       .order(created_at: :desc)
     @pagy, @records = pagy_keyset(@sleep_records)
 
-    render json: {
-      data: @records,
-      pagination: {
-        next: pagy_keyset_next_url(@pagy, absolute: true)
-      }
-    }
+    json_pagination_response(@records, @pagy)
   end
 
   def create
     @sleep_record = Current.user.sleep_records.new(sleep_record_params)
 
     if @sleep_record.save
-      render json: @sleep_record, status: :created
+      json_response(data: @sleep_record, status: :created)
     else
-      render json: { errors: @sleep_record.errors.as_json(full_messages: true) }, status: :unprocessable_entity
+      json_error_response(@sleep_record.errors, :unprocessable_entity)
     end
   end
 
   def show
-    render json: @sleep_record
+    json_response(data: @sleep_record)
   end
 
   def update
     if @sleep_record.update(sleep_record_params)
-      render json: @sleep_record
+      json_response(data: @sleep_record)
     else
-      render json: { errors: @sleep_record.errors.as_json(full_messages: true) }, status: :unprocessable_entity
+      json_error_response(@sleep_record.errors, :unprocessable_entity)
     end
   end
 

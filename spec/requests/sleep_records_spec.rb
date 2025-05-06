@@ -45,8 +45,9 @@ RSpec.describe "SleepRecords", type: :request do
 
       post sleep_records_path, params: sleep_record_params, headers: @authentication_header
 
+      json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:created)
-      expect(response.body).to eq(user.sleep_records.last.to_json)
+      expect(json_response["data"]).to eq(user.sleep_records.last.as_json)
     end
 
     it "returns an error when the record is invalid" do
@@ -56,6 +57,7 @@ RSpec.describe "SleepRecords", type: :request do
 
       expect(response).to have_http_status(:unprocessable_entity)
       expect(response.body).to eq(JSON.generate({
+        data: nil,
         errors: {
           start_time: [ "Start time can't be blank" ]
         }
@@ -69,8 +71,9 @@ RSpec.describe "SleepRecords", type: :request do
 
       get sleep_record_path(sleep_record), headers: @authentication_header
 
+      json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:success)
-      expect(response.body).to eq(sleep_record.to_json)
+      expect(json_response["data"]["id"]).to eq(sleep_record.id)
     end
 
     it "returns an error when the record is not found" do
@@ -90,8 +93,8 @@ RSpec.describe "SleepRecords", type: :request do
       expected_response = sleep_record.reload
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:success)
-      expect(json_response["end_time"]).to eq(expected_response.end_time.as_json)
-      expect(json_response["duration"]).to eq(expected_response.duration)
+      expect(json_response["data"]["end_time"]).to eq(expected_response.end_time.as_json)
+      expect(json_response["data"]["duration"]).to eq(expected_response.duration)
     end
 
     it "returns an error when the record is invalid" do
@@ -102,6 +105,7 @@ RSpec.describe "SleepRecords", type: :request do
 
       expect(response).to have_http_status(:unprocessable_entity)
       expect(response.body).to eq(JSON.generate({
+        data: nil,
         errors: {
           start_time: [ "Start time can't be blank" ]
         }

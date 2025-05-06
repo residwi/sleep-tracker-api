@@ -1,6 +1,7 @@
 class ApplicationController < ActionController::API
   include ActionController::HttpAuthentication::Token::ControllerMethods
   include Pagy::Backend
+  include ApiResponse
 
   before_action :set_current_request_details
   before_action :authenticate

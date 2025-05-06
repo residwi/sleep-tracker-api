@@ -8,15 +8,15 @@ class SessionsController < ApplicationController
       @session = user.sessions.create!
       response.set_header "X-Session-Token", @session.signed_id
 
-      render json: @session, status: :created
+      json_response(data: @session, status: :created)
     else
-      render json: { error: "That email or password is incorrect" }, status: :unauthorized
+      json_response(message: "That email or password is incorrect", status: :unauthorized)
     end
   end
 
   def destroy
     @session.destroy
-    render json: { message: "Session destroyed" }, status: :no_content
+    head :no_content
   end
 
   private

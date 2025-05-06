@@ -9,11 +9,6 @@ class FeedsController < ApplicationController
 
     @pagy, @records = pagy_keyset(@feeds)
 
-    render json: {
-      data: @records,
-      pagination: {
-        next: pagy_keyset_next_url(@pagy, absolute: true)
-      }
-    }
+    json_pagination_response(@records, @pagy)
   end
 end

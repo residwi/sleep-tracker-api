@@ -37,8 +37,8 @@ RSpec.describe "Users", type: :request do
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:ok)
-      expect(json_response["id"]).to eq(user.id)
-      expect(json_response.keys).to match_array([ "id", "name" ])
+      expect(json_response["data"]["id"]).to eq(user.id)
+      expect(json_response["data"].keys).to match_array([ "id", "name" ])
     end
 
     it "returns 404 if user not found" do
@@ -110,7 +110,7 @@ RSpec.describe "Users", type: :request do
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:unprocessable_entity)
-      expect(json_response["error"]).to eq("Unable to follow user")
+      expect(json_response["message"]).to eq("Unable to follow user")
     end
   end
 

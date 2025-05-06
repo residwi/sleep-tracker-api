@@ -17,8 +17,10 @@ RSpec.describe "Sessions", type: :request do
     context "with invalid credentials" do
       it "does not sign in the user" do
         post sign_in_path, params: { email: user.email, password: "wrong_password" }
+
+        json_response = JSON.parse(response.body)
         expect(response).to have_http_status(:unauthorized)
-        expect(JSON.parse(response.body)["error"]).to eq("That email or password is incorrect")
+        expect(json_response["message"]).to eq("That email or password is incorrect")
       end
     end
   end
