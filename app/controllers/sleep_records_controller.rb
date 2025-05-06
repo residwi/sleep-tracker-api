@@ -4,8 +4,14 @@ class SleepRecordsController < ApplicationController
   def index
     @sleep_records = Current.user.sleep_records
       .order(created_at: :desc)
+    @pagy, @records = pagy_keyset(@sleep_records)
 
-    render json: @sleep_records
+    render json: {
+      data: @records,
+      pagination: {
+        next: pagy_keyset_next_url(@pagy, absolute: true)
+      }
+    }
   end
 
   def create

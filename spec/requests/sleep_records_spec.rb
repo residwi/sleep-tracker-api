@@ -14,9 +14,25 @@ RSpec.describe "SleepRecords", type: :request do
 
       get sleep_records_path, headers: @authentication_header
 
-      most_recent_records = sleep_records.sort_by(&:created_at).reverse!
+      most_recent_records = sleep_records.sort_by(&:created_at).reverse
+      json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:success)
-      expect(response.body).to eq(most_recent_records.to_json)
+      expect(json_response["data"].size).to eq(3)
+      expect(json_response["data"].map { |record| record["id"] }).to match_array(most_recent_records.map(&:id))
+    end
+
+    context "when paginated" do
+      it "returns paginated sleep records" do
+        sleep_records = create_list(:sleep_record, 10, user: user)
+
+        get sleep_records_path(limit: 5), headers: @authentication_header
+
+        json_response = JSON.parse(response.body)
+        expect(response).to have_http_status(:success)
+        expect(json_response["data"].size).to eq(5)
+        expect(json_response["data"].map { |record| record["id"] }).to match_array(sleep_records.sort_by(&:created_at).reverse.first(5).map(&:id))
+        expect(json_response["pagination"]["next"]).to be_present
+      end
     end
   end
 
