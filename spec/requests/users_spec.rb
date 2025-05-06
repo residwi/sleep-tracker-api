@@ -10,6 +10,8 @@ RSpec.describe "Users", type: :request do
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:ok)
       expect(json_response.size).to eq(3)
+      expect(json_response.map { |user| user["id"] }).to match_array(User.all.map(&:id))
+      expect(json_response.flat_map(&:keys).uniq).to match_array([ "id", "name" ])
     end
   end
 
@@ -22,6 +24,7 @@ RSpec.describe "Users", type: :request do
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:ok)
       expect(json_response["id"]).to eq(user.id)
+      expect(json_response.keys).to match_array([ "id", "name" ])
     end
 
     it "returns 404 if user not found" do

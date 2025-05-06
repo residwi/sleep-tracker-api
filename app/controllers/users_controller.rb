@@ -3,7 +3,7 @@ class UsersController < ApplicationController
   before_action :set_user, except: [ :index ]
 
   def index
-    @users = User.all
+    @users = User.select(:id, :name).all
     render json: @users, status: :ok
   end
 
@@ -37,6 +37,6 @@ class UsersController < ApplicationController
   private
 
   def set_user
-    @user = User.find(params[:id])
+    @user = User.select(:id, :name).find(params[:id])
   end
 end
