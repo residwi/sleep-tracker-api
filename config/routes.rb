@@ -17,6 +17,7 @@ Rails.application.routes.draw do
       delete :unfollow
       get :followers
       get :following
+      get :sleep_records
     end
   end
 end

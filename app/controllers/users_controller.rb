@@ -11,6 +11,14 @@ class UsersController < ApplicationController
     render json: @user, status: :ok
   end
 
+  def sleep_records
+    @sleep_records = @user.sleep_records
+      .order(created_at: :desc)
+      .select(:id, :start_time, :end_time, :duration)
+
+    render json: @sleep_records, status: :ok
+  end
+
   def follow
     if Current.user.follow(@user)
       render json: { message: "Successfully followed user" }, status: :created

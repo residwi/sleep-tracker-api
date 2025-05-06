@@ -33,6 +33,32 @@ RSpec.describe "Users", type: :request do
     end
   end
 
+  describe "GET /users/:id/sleep_records" do
+    let(:user) { create(:user) }
+
+    before do
+      token = api_sign_in_as(user)
+      @authentication_header = { Authorization: "Bearer #{token}" }
+    end
+
+    it "returns sleep records of a user" do
+      sleep_records = create_list(:sleep_record, 3, user: user)
+
+      get sleep_records_user_path(user), headers: @authentication_header
+
+      json_response = JSON.parse(response.body)
+      expect(response).to have_http_status(:ok)
+      expect(json_response.size).to eq(3)
+      expect(json_response.map { |record| record["id"] }).to match_array(sleep_records.map(&:id))
+      expect(json_response.flat_map(&:keys).uniq).to match_array([ "id", "start_time", "end_time", "duration" ])
+    end
+
+    it "returns 404 if user not found" do
+      get sleep_records_user_path(id: 9999), headers: @authentication_header
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
   describe "POST /users/:id/follow" do
     let(:user) { create(:user) }
     let(:other_user) { create(:user) }
