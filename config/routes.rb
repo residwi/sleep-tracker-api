@@ -20,4 +20,6 @@ Rails.application.routes.draw do
       get :sleep_records
     end
   end
+
+  get :feeds, to: "feeds#index"
 end
