@@ -3,8 +3,15 @@ class UsersController < ApplicationController
   before_action :set_user, except: [ :index ]
 
   def index
-    @users = User.select(:id, :name).all
-    render json: @users, status: :ok
+    @users = User.select(:id, :name).order(id: :asc)
+    @pagy, @records = pagy_keyset(@users)
+
+    render json: {
+      data: @records,
+      pagination: {
+        next: pagy_keyset_next_url(@pagy, absolute: true)
+      }
+    }
   end
 
   def show
@@ -16,7 +23,14 @@ class UsersController < ApplicationController
       .order(created_at: :desc)
       .select(:id, :start_time, :end_time, :duration)
 
-    render json: @sleep_records, status: :ok
+    @pagy, @records = pagy_keyset(@sleep_records)
+
+    render json: {
+      data: @records,
+      pagination: {
+        next: pagy_keyset_next_url(@pagy, absolute: true)
+      }
+    }
   end
 
   def follow
@@ -33,13 +47,25 @@ class UsersController < ApplicationController
   end
 
   def followers
-    @followers = @user.followers
-    render json: @followers, status: :ok
+    @pagy, @records = pagy_keyset(@user.followers.order(created_at: :desc))
+
+    render json: {
+      data: @records,
+      pagination: {
+        next: pagy_keyset_next_url(@pagy, absolute: true)
+      }
+    }
   end
 
   def following
-    @following = @user.following
-    render json: @following, status: :ok
+    @pagy, @records = pagy_keyset(@user.following.order(created_at: :desc))
+
+    render json: {
+      data: @records,
+      pagination: {
+        next: pagy_keyset_next_url(@pagy, absolute: true)
+      }
+    }
   end
 
   private

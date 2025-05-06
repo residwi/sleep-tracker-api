@@ -9,9 +9,23 @@ RSpec.describe "Users", type: :request do
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:ok)
-      expect(json_response.size).to eq(3)
-      expect(json_response.map { |user| user["id"] }).to match_array(User.all.map(&:id))
-      expect(json_response.flat_map(&:keys).uniq).to match_array([ "id", "name" ])
+      expect(json_response["data"].size).to eq(3)
+      expect(json_response["data"].map { |user| user["id"] }).to match_array(User.all.map(&:id))
+      expect(json_response["data"].flat_map(&:keys).uniq).to match_array([ "id", "name" ])
+    end
+
+    context "when paginated" do
+      it "returns paginated users" do
+        create_list(:user, 10)
+
+        get users_path(limit: 5)
+
+        json_response = JSON.parse(response.body)
+        expect(response).to have_http_status(:ok)
+        expect(json_response["data"].size).to eq(5)
+        expect(json_response["data"].map { |user| user["id"] }).to match_array(User.order(id: :asc).limit(5).pluck(:id))
+        expect(json_response["pagination"]["next"]).to be_present
+      end
     end
   end
 
@@ -48,14 +62,28 @@ RSpec.describe "Users", type: :request do
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:ok)
-      expect(json_response.size).to eq(3)
-      expect(json_response.map { |record| record["id"] }).to match_array(sleep_records.map(&:id))
-      expect(json_response.flat_map(&:keys).uniq).to match_array([ "id", "start_time", "end_time", "duration" ])
+      expect(json_response["data"].size).to eq(3)
+      expect(json_response["data"].map { |record| record["id"] }).to match_array(sleep_records.map(&:id))
+      expect(json_response["data"].flat_map(&:keys).uniq).to match_array([ "id", "start_time", "end_time", "duration", "created_at" ])
     end
 
     it "returns 404 if user not found" do
       get sleep_records_user_path(id: 9999), headers: @authentication_header
       expect(response).to have_http_status(:not_found)
+    end
+
+    context "when paginated" do
+      it "returns paginated sleep records" do
+        sleep_records = create_list(:sleep_record, 10, user: user)
+
+        get sleep_records_user_path(user, limit: 5), headers: @authentication_header
+
+        json_response = JSON.parse(response.body)
+        expect(response).to have_http_status(:ok)
+        expect(json_response["data"].size).to eq(5)
+        expect(json_response["data"].map { |record| record["id"] }).to match_array(sleep_records.sort_by(&:created_at).reverse.first(5).map(&:id))
+        expect(json_response["pagination"]["next"]).to be_present
+      end
     end
   end
 
@@ -113,8 +141,26 @@ RSpec.describe "Users", type: :request do
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:ok)
-      expect(json_response.size).to eq(3)
-      expect(json_response.map { |f| f["id"] }).to match_array(followers.map(&:id))
+      expect(json_response["data"].size).to eq(3)
+      expect(json_response["data"].map { |f| f["id"] }).to match_array(followers.map(&:id))
+    end
+
+    context "when paginated" do
+      it "returns paginated followers" do
+        user = create(:user)
+        followers = create_list(:user, 10)
+        followers.each do |follower|
+          create(:follow, follower: follower, followed: user)
+        end
+
+        get followers_user_path(user, limit: 5)
+
+        json_response = JSON.parse(response.body)
+        expect(response).to have_http_status(:ok)
+        expect(json_response["data"].size).to eq(5)
+        expect(json_response["data"].map { |f| f["id"] }).to match_array(followers.sort_by(&:created_at).reverse.first(5).map(&:id))
+        expect(json_response["pagination"]["next"]).to be_present
+      end
     end
   end
 
@@ -130,8 +176,26 @@ RSpec.describe "Users", type: :request do
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:ok)
-      expect(json_response.size).to eq(3)
-      expect(json_response.map { |f| f["id"] }).to match_array(followed_users.map(&:id))
+      expect(json_response["data"].size).to eq(3)
+      expect(json_response["data"].map { |f| f["id"] }).to match_array(followed_users.map(&:id))
+    end
+
+    context "when paginated" do
+      it "returns paginated following" do
+        user = create(:user)
+        followed_users = create_list(:user, 10)
+        followed_users.each do |followed_user|
+          create(:follow, follower: user, followed: followed_user)
+        end
+
+        get following_user_path(user, limit: 5)
+
+        json_response = JSON.parse(response.body)
+        expect(response).to have_http_status(:ok)
+        expect(json_response["data"].size).to eq(5)
+        expect(json_response["data"].map { |f| f["id"] }).to match_array(followed_users.sort_by(&:created_at).reverse.first(5).map(&:id))
+        expect(json_response["pagination"]["next"]).to be_present
+      end
     end
   end
 end
