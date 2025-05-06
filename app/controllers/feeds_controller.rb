@@ -7,6 +7,13 @@ class FeedsController < ApplicationController
       .order(created_at: :desc)
       .select(:id, :start_time, :end_time, :duration, :user_id)
 
-    render json: @feeds
+    @pagy, @records = pagy_keyset(@feeds)
+
+    render json: {
+      data: @records,
+      pagination: {
+        next: pagy_keyset_next_url(@pagy, absolute: true)
+      }
+    }
   end
 end

@@ -24,16 +24,32 @@ RSpec.describe "Feeds", type: :request do
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:success)
-      expect(json_response.size).to eq(8)
-      expect(json_response.map { |record| record["id"] }).to match_array(sleep_records.map(&:id) + other_sleep_records.flatten.map(&:id))
-      expect(json_response.flat_map(&:keys).uniq).to match_array([ "id", "start_time", "end_time", "duration", "user_id" ])
+      expect(json_response["data"].size).to eq(8)
+      expect(json_response["data"].map { |record| record["id"] }).to match_array(sleep_records.map(&:id) + other_sleep_records.flatten.map(&:id))
+      expect(json_response["data"].flat_map(&:keys).uniq).to match_array([ "id", "start_time", "end_time", "duration", "user_id", "created_at" ])
     end
 
     it "returns an empty array if no feeds are available" do
       get feeds_path, headers: @authentication_header
 
+      json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:success)
-      expect(response.body).to eq("[]")
+      expect(json_response["data"]).to be_empty
+      expect(json_response["pagination"]["next"]).to be_nil
+    end
+
+    context "when paginated" do
+      it "returns paginated feeds" do
+        sleep_records = create_list(:sleep_record, 10, user: user)
+
+        get feeds_path(limit: 5), headers: @authentication_header
+
+        json_response = JSON.parse(response.body)
+        expect(response).to have_http_status(:success)
+        expect(json_response["data"].size).to eq(5)
+        expect(json_response["data"].map { |record| record["id"] }).to match_array(sleep_records.sort_by(&:created_at).reverse.first(5).map(&:id))
+        expect(json_response["pagination"]["next"]).to be_present
+      end
     end
   end
 end
