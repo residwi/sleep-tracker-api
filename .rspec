@@ -1,1 +1,1 @@
---require spec_helper -fd
+--require spec_helper -fd --order random
