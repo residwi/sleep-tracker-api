@@ -30,6 +30,22 @@ RSpec.describe SleepRecord, type: :model do
         expect(record.errors[:end_time]).to eq([])
       end
     end
+
+    describe "no active sleep record validation" do
+      let(:user) { create(:user) }
+
+      it "returns error if user has active sleep record" do
+        create(:sleep_record, user: user, start_time: 1.hour.ago, end_time: nil)
+        record = build(:sleep_record, user: user, start_time: Time.current, end_time: 2.hours.from_now)
+        expect(record).not_to be_valid
+        expect(record.errors[:base]).to include("You already have an active sleep record.")
+      end
+
+      it "allows a new record if no active sleep record exists" do
+        record = build(:sleep_record, user: user, start_time: Time.current, end_time: 2.hours.from_now)
+        expect(record).to be_valid
+      end
+    end
   end
 
   describe "callbacks" do
