@@ -1,0 +1,30 @@
+name: sleep-tracker-api
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        USER_ID: "${USER_ID:-1000}"
+        GROUP_ID: "${GROUP_ID:-1000}"
+    environment:
+      DATABASE_HOST: db
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+    volumes:
+      - $PWD:/rails
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: secret
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
