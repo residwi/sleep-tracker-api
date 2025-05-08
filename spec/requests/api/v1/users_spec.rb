@@ -1,11 +1,11 @@
-require 'rails_helper'
+require "rails_helper"
 
-RSpec.describe "Users", type: :request do
-  describe "GET /users" do
+RSpec.describe "Api::V1::Users", type: :request do
+  describe "GET /api/v1/users" do
     it "returns a list of users" do
       create_list(:user, 3)
 
-      get users_path
+      get api_v1_users_path
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:ok)
@@ -18,7 +18,7 @@ RSpec.describe "Users", type: :request do
       it "returns paginated users" do
         create_list(:user, 10)
 
-        get users_path(limit: 5)
+        get api_v1_users_path(limit: 5)
 
         json_response = JSON.parse(response.body)
         expect(response).to have_http_status(:ok)
@@ -29,11 +29,11 @@ RSpec.describe "Users", type: :request do
     end
   end
 
-  describe "GET /users/:id" do
+  describe "GET /api/v1/users/:id" do
     it "returns a specific user" do
       user = create(:user)
 
-      get user_path(user)
+      get api_v1_user_path(user)
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:ok)
@@ -42,12 +42,12 @@ RSpec.describe "Users", type: :request do
     end
 
     it "returns 404 if user not found" do
-      get user_path(id: 9999)
+      get api_v1_user_path(id: 9999)
       expect(response).to have_http_status(:not_found)
     end
   end
 
-  describe "GET /users/:id/sleep_records" do
+  describe "GET /api/v1/users/:id/sleep_records" do
     let(:user) { create(:user) }
 
     before do
@@ -58,7 +58,7 @@ RSpec.describe "Users", type: :request do
     it "returns sleep records of a user" do
       sleep_records = create_list(:sleep_record, 3, user: user)
 
-      get sleep_records_user_path(user), headers: @authentication_header
+      get sleep_records_api_v1_user_path(user), headers: @authentication_header
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:ok)
@@ -68,7 +68,7 @@ RSpec.describe "Users", type: :request do
     end
 
     it "returns 404 if user not found" do
-      get sleep_records_user_path(id: 9999), headers: @authentication_header
+      get sleep_records_api_v1_user_path(id: 9999), headers: @authentication_header
       expect(response).to have_http_status(:not_found)
     end
 
@@ -76,7 +76,7 @@ RSpec.describe "Users", type: :request do
       it "returns paginated sleep records" do
         sleep_records = create_list(:sleep_record, 10, user: user)
 
-        get sleep_records_user_path(user, limit: 5), headers: @authentication_header
+        get sleep_records_api_v1_user_path(user, limit: 5), headers: @authentication_header
 
         json_response = JSON.parse(response.body)
         expect(response).to have_http_status(:ok)
@@ -87,7 +87,7 @@ RSpec.describe "Users", type: :request do
     end
   end
 
-  describe "POST /users/:id/follow" do
+  describe "POST /api/v1/users/:id/follow" do
     let(:user) { create(:user) }
     let(:other_user) { create(:user) }
 
@@ -97,7 +97,7 @@ RSpec.describe "Users", type: :request do
     end
 
     it "follows another user" do
-      post follow_user_path(other_user), headers: @authentication_header
+      post follow_api_v1_user_path(other_user), headers: @authentication_header
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:created)
@@ -106,7 +106,7 @@ RSpec.describe "Users", type: :request do
     end
 
     it "does not allow self-following" do
-      post follow_user_path(user), headers: @authentication_header
+      post follow_api_v1_user_path(user), headers: @authentication_header
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:unprocessable_entity)
@@ -114,7 +114,7 @@ RSpec.describe "Users", type: :request do
     end
   end
 
-  describe "DELETE /users/:id/unfollow" do
+  describe "DELETE /api/v1/users/:id/unfollow" do
     it "unfollows another user" do
       user = create(:user)
       other_user = create(:user)
@@ -122,14 +122,14 @@ RSpec.describe "Users", type: :request do
 
       token = api_sign_in_as(user)
 
-      delete unfollow_user_path(other_user), headers: { Authorization: "Bearer #{token}" }
+      delete unfollow_api_v1_user_path(other_user), headers: { Authorization: "Bearer #{token}" }
 
       expect(response).to have_http_status(:no_content)
       expect(user.following).not_to include(other_user)
     end
   end
 
-  describe "GET /users/:id/followers" do
+  describe "GET /api/v1/users/:id/followers" do
     it "returns the followers of a user" do
       user = create(:user)
       followers = create_list(:user, 3)
@@ -137,7 +137,7 @@ RSpec.describe "Users", type: :request do
         create(:follow, follower: follower, followed: user)
       end
 
-      get followers_user_path(user)
+      get followers_api_v1_user_path(user)
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:ok)
@@ -153,7 +153,7 @@ RSpec.describe "Users", type: :request do
           create(:follow, follower: follower, followed: user)
         end
 
-        get followers_user_path(user, limit: 5)
+        get followers_api_v1_user_path(user, limit: 5)
 
         json_response = JSON.parse(response.body)
         expect(response).to have_http_status(:ok)
@@ -164,7 +164,7 @@ RSpec.describe "Users", type: :request do
     end
   end
 
-  describe "GET /users/:id/following" do
+  describe "GET /api/v1/users/:id/following" do
     it "returns the users that a user is following" do
       user = create(:user)
       followed_users = create_list(:user, 3)
@@ -172,7 +172,7 @@ RSpec.describe "Users", type: :request do
         create(:follow, follower: user, followed: followed_user)
       end
 
-      get following_user_path(user)
+      get following_api_v1_user_path(user)
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:ok)
@@ -188,7 +188,7 @@ RSpec.describe "Users", type: :request do
           create(:follow, follower: user, followed: followed_user)
         end
 
-        get following_user_path(user, limit: 5)
+        get following_api_v1_user_path(user, limit: 5)
 
         json_response = JSON.parse(response.body)
         expect(response).to have_http_status(:ok)

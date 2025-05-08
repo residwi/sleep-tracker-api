@@ -1,7 +1,7 @@
 require "rails_helper"
 
-RSpec.describe "Feeds", type: :request do
-  describe "GET /feeds" do
+RSpec.describe "Api::V1::Feeds", type: :request do
+  describe "GET /api/v1/feeds" do
     let(:user) { create(:user) }
     let(:other_users) { create_list(:user, 3) }
 
@@ -24,7 +24,7 @@ RSpec.describe "Feeds", type: :request do
       create(:sleep_record, user: other_users[0], start_time: two_weeks_ago, end_time: two_weeks_ago + 7.hours)
       create(:sleep_record, user: user, start_time: one_week_ago + 1.day, end_time: one_week_ago + 1.day + 7.hours)
 
-      get feeds_path, headers: @authentication_header
+      get api_v1_feeds_path, headers: @authentication_header
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:success)
@@ -39,7 +39,7 @@ RSpec.describe "Feeds", type: :request do
     end
 
     it "returns an empty array if no feeds are available" do
-      get feeds_path, headers: @authentication_header
+      get api_v1_feeds_path, headers: @authentication_header
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:success)
@@ -59,7 +59,7 @@ RSpec.describe "Feeds", type: :request do
           )
         end
 
-        get feeds_path(limit: 5), headers: @authentication_header
+        get api_v1_feeds_path(limit: 5), headers: @authentication_header
 
         json_response = JSON.parse(response.body)
         expect(response).to have_http_status(:success)

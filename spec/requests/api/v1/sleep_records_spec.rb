@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe "SleepRecords", type: :request do
+RSpec.describe "Api::V1::SleepRecords", type: :request do
   let(:user) { create(:user) }
 
   before do
@@ -8,11 +8,11 @@ RSpec.describe "SleepRecords", type: :request do
     @authentication_header = { Authorization: "Bearer #{token}" }
   end
 
-  describe "GET /sleep_records" do
+  describe "GET /api/v1/sleep_records" do
     it "returns sleep records of current user" do
       sleep_records = create_list(:sleep_record, 3, user: user)
 
-      get sleep_records_path, headers: @authentication_header
+      get api_v1_sleep_records_path, headers: @authentication_header
 
       most_recent_records = sleep_records.sort_by(&:created_at).reverse
       json_response = JSON.parse(response.body)
@@ -25,7 +25,7 @@ RSpec.describe "SleepRecords", type: :request do
       it "returns paginated sleep records" do
         sleep_records = create_list(:sleep_record, 10, user: user)
 
-        get sleep_records_path(limit: 5), headers: @authentication_header
+        get api_v1_sleep_records_path(limit: 5), headers: @authentication_header
 
         json_response = JSON.parse(response.body)
         expect(response).to have_http_status(:success)
@@ -36,14 +36,14 @@ RSpec.describe "SleepRecords", type: :request do
     end
   end
 
-  describe "POST /sleep_records" do
+  describe "POST /api/v1/sleep_records" do
     it "creates a new sleep record for current user" do
       sleep_record_params = {
         start_time: Time.current,
         end_time: 2.hours.from_now
       }
 
-      post sleep_records_path, params: sleep_record_params, headers: @authentication_header
+      post api_v1_sleep_records_path, params: sleep_record_params, headers: @authentication_header
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:created)
@@ -53,7 +53,7 @@ RSpec.describe "SleepRecords", type: :request do
     it "returns an error when the record is invalid" do
       invalid_params = { start_time: nil }
 
-      post sleep_records_path, params: invalid_params, headers: @authentication_header
+      post api_v1_sleep_records_path, params: invalid_params, headers: @authentication_header
 
       expect(response).to have_http_status(:unprocessable_entity)
       expect(response.body).to eq(JSON.generate({
@@ -65,11 +65,11 @@ RSpec.describe "SleepRecords", type: :request do
     end
   end
 
-  describe "GET /sleep_records/:id" do
+  describe "GET /api/v1/sleep_records/:id" do
     it "returns a specific sleep record of current user" do
       sleep_record = create(:sleep_record, user: user)
 
-      get sleep_record_path(sleep_record), headers: @authentication_header
+      get api_v1_sleep_record_path(sleep_record), headers: @authentication_header
 
       json_response = JSON.parse(response.body)
       expect(response).to have_http_status(:success)
@@ -77,18 +77,18 @@ RSpec.describe "SleepRecords", type: :request do
     end
 
     it "returns an error when the record is not found" do
-      get sleep_record_path(id: 999), headers: @authentication_header
+      get api_v1_sleep_record_path(id: 999), headers: @authentication_header
 
       expect(response).to have_http_status(:not_found)
     end
   end
 
-  describe "PUT /sleep_records/:id" do
+  describe "PUT /api/v1/sleep_records/:id" do
     it "updates a specific sleep record of current user" do
       sleep_record = create(:sleep_record, user: user)
       updated_params = { end_time: 3.hours.from_now }
 
-      put sleep_record_path(sleep_record), params: updated_params, headers: @authentication_header
+      put api_v1_sleep_record_path(sleep_record), params: updated_params, headers: @authentication_header
 
       expected_response = sleep_record.reload
       json_response = JSON.parse(response.body)
@@ -101,7 +101,7 @@ RSpec.describe "SleepRecords", type: :request do
       sleep_record = create(:sleep_record, user: user)
       invalid_params = { start_time: nil }
 
-      put sleep_record_path(sleep_record), params: invalid_params, headers: @authentication_header
+      put api_v1_sleep_record_path(sleep_record), params: invalid_params, headers: @authentication_header
 
       expect(response).to have_http_status(:unprocessable_entity)
       expect(response.body).to eq(JSON.generate({
@@ -113,18 +113,18 @@ RSpec.describe "SleepRecords", type: :request do
     end
   end
 
-  describe "DELETE /sleep_records/:id" do
+  describe "DELETE /api/v1/sleep_records/:id" do
     it "deletes a specific sleep record of current user" do
       sleep_record = create(:sleep_record, user: user)
 
-      delete sleep_record_path(sleep_record), headers: @authentication_header
+      delete api_v1_sleep_record_path(sleep_record), headers: @authentication_header
 
       expect(response).to have_http_status(:no_content)
       expect { sleep_record.reload }.to raise_error(ActiveRecord::RecordNotFound)
     end
 
     it "returns an error when the record is not found" do
-      delete sleep_record_path(id: 999), headers: @authentication_header
+      delete api_v1_sleep_record_path(id: 999), headers: @authentication_header
 
       expect(response).to have_http_status(:not_found)
     end

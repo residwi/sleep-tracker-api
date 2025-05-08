@@ -1,22 +1,19 @@
 require "rails_helper"
 
-RSpec.describe "Sessions", type: :request do
+RSpec.describe "Api::V1::Sessions", type: :request do
   let(:user) { create(:user) }
 
-  describe "POST /sign_in" do
+  describe "POST /api/v1/sign_in" do
     context "with valid credentials" do
-      it "signs in the user and redirects to root" do
-        post sign_in_path, params: { email: user.email, password: "secret_password" }
+      it "signs in the user" do
+        post api_v1_sign_in_path, params: { email: user.email, password: "secret_password" }
         expect(response).to have_http_status(:created)
-
-        get root_path, headers: { Authorization: "Bearer #{response.headers["X-Session-Token"]}" }
-        expect(response).to have_http_status(:success)
       end
     end
 
     context "with invalid credentials" do
       it "does not sign in the user" do
-        post sign_in_path, params: { email: user.email, password: "wrong_password" }
+        post api_v1_sign_in_path, params: { email: user.email, password: "wrong_password" }
 
         json_response = JSON.parse(response.body)
         expect(response).to have_http_status(:unauthorized)
@@ -25,11 +22,11 @@ RSpec.describe "Sessions", type: :request do
     end
   end
 
-  describe "DELETE /session/:id" do
+  describe "DELETE /api/v1/sessions/:id" do
     it "signs out the user" do
       token = api_sign_in_as(user)
 
-      delete session_path(user.sessions.last), headers: { Authorization: "Bearer #{token}" }
+      delete api_v1_session_path(user.sessions.last), headers: { Authorization: "Bearer #{token}" }
       expect(response).to have_http_status(:no_content)
     end
   end
