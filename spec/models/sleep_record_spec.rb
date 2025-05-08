@@ -46,6 +46,47 @@ RSpec.describe SleepRecord, type: :model do
         expect(record).to be_valid
       end
     end
+
+    describe "ISO8601 format validation" do
+      let(:user) { create(:user) }
+
+      context "with start_time" do
+        it "accepts valid ISO8601 format" do
+          record = build(:sleep_record, user: user, start_time: "2025-05-08T08:00:00Z")
+          expect(record).to be_valid
+        end
+
+        it "rejects invalid datetime format" do
+          record = build(:sleep_record, user: user, start_time: "05/08/2025 08:00:00")
+          expect(record).not_to be_valid
+          expect(record.errors[:start_time]).to include("must be a valid ISO8601 datetime format")
+        end
+      end
+
+      context "with end_time" do
+        it "accepts valid ISO8601 format" do
+          record = build(:sleep_record, user: user,
+                        start_time: "2025-05-08T08:00:00Z",
+                        end_time: "2025-05-08T10:00:00Z")
+          expect(record).to be_valid
+        end
+
+        it "rejects invalid datetime format" do
+          record = build(:sleep_record, user: user,
+                        start_time: "2025-05-08T08:00:00Z",
+                        end_time: "05/08/2025 10:00:00")
+          expect(record).not_to be_valid
+          expect(record.errors[:end_time]).to include("must be a valid ISO8601 datetime format")
+        end
+      end
+
+      it "doesn't validate format when attributes are already Time objects" do
+        start_time = Time.current
+        end_time = 2.hours.from_now
+        record = build(:sleep_record, user: user, start_time: start_time, end_time: end_time)
+        expect(record).to be_valid
+      end
+    end
   end
 
   describe "callbacks" do

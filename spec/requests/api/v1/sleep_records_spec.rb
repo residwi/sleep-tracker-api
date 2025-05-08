@@ -39,8 +39,8 @@ RSpec.describe "Api::V1::SleepRecords", type: :request do
   describe "POST /api/v1/sleep_records" do
     it "creates a new sleep record for current user" do
       sleep_record_params = {
-        start_time: Time.current,
-        end_time: 2.hours.from_now
+        start_time: Time.current.iso8601,
+        end_time: 2.hours.from_now.iso8601
       }
 
       post api_v1_sleep_records_path, params: sleep_record_params, headers: @authentication_header
@@ -62,6 +62,19 @@ RSpec.describe "Api::V1::SleepRecords", type: :request do
           start_time: [ "Start time can't be blank" ]
         }
       }))
+    end
+
+    it "returns an error when datetime format is invalid" do
+      invalid_params = {
+        start_time: "05/08/2025 08:00:00",
+        end_time: "05/08/2025 10:00:00"
+      }
+
+      post api_v1_sleep_records_path, params: invalid_params, headers: @authentication_header
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      json_response = JSON.parse(response.body)
+      expect(json_response["errors"]["start_time"]).to include("Start time must be a valid ISO8601 datetime format")
     end
   end
 
@@ -86,7 +99,7 @@ RSpec.describe "Api::V1::SleepRecords", type: :request do
   describe "PUT /api/v1/sleep_records/:id" do
     it "updates a specific sleep record of current user" do
       sleep_record = create(:sleep_record, user: user)
-      updated_params = { end_time: 3.hours.from_now }
+      updated_params = { end_time: 3.hours.from_now.iso8601 }
 
       put api_v1_sleep_record_path(sleep_record), params: updated_params, headers: @authentication_header
 
@@ -110,6 +123,17 @@ RSpec.describe "Api::V1::SleepRecords", type: :request do
           start_time: [ "Start time can't be blank" ]
         }
       }))
+    end
+
+    it "returns an error when datetime format is invalid" do
+      sleep_record = create(:sleep_record, user: user)
+      invalid_params = { end_time: "05/08/2025 10:00:00" }
+
+      put api_v1_sleep_record_path(sleep_record), params: invalid_params, headers: @authentication_header
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      json_response = JSON.parse(response.body)
+      expect(json_response["errors"]["end_time"]).to include("End time must be a valid ISO8601 datetime format")
     end
   end
 
